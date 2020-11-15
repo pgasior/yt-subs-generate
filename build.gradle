@@ -14,6 +14,15 @@ java {
     }
 }
 
+shadowJar{
+    minimize {
+        exclude(dependency("org.jetbrains.kotlin:.*:.*"))
+        exclude(dependency("com.rometools:.*:.*"))
+        exclude(dependency("org.slf4j:.*:.*"))
+        exclude(dependency("ch.qos.logback:.*:.*"))
+    }
+}
+
 launch4j {
     mainClassName = 'pl.gasior.Main'
     jvmOptions = ["-Dfile.encoding=UTF-8"]
