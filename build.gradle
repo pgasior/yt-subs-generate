@@ -1,7 +1,7 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '6.1.0'
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.4.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
     id 'edu.sc.seis.launch4j' version '2.4.9'
     id "com.github.ben-manes.versions" version '0.36.0'
 }
@@ -50,16 +50,17 @@ def isNonStable = { String version ->
 
 tasks.named("dependencyUpdates").configure {
     checkForGradleUpdate = true
-    // Example 2: disallow release candidates as upgradable versions from stable versions
+    revision = 'release'
+    gradleReleaseChannel = 'current'
+
     rejectVersionIf {
-        isNonStable(candidate.version) && !isNonStable(currentVersion)
+        isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
     }
 }
 
 dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib'
-    implementation 'com.google.apis:google-api-services-youtube:v3-rev20200618-1.30.9'
-    implementation 'com.google.api-client:google-api-client-java6:1.31.0'
+    implementation 'com.google.apis:google-api-services-youtube:v3-rev20201214-1.31.0'
     implementation 'com.google.oauth-client:google-oauth-client-jetty:1.31.2'
 
     implementation 'com.rometools:rome-opml:1.15.0'
@@ -76,5 +77,5 @@ dependencies {
     implementation 'com.uchuhimo:konf:0.23.0'
 
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.1'
 }

@@ -29,8 +29,8 @@ class TTRSSService(private val url: String,
     private fun uploadOpml(opml: String) {
         val body = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart("op", "dlg")
-            .addFormDataPart("method", "importOpml")
+            .addFormDataPart("op", "opml")
+            .addFormDataPart("method", "import")
             .addFormDataPart(
                 "opml_file",
                 "subscriptions",
@@ -47,8 +47,10 @@ class TTRSSService(private val url: String,
 
         if (responseBody != null) {
             val parseBodyFragment = Jsoup.parse(responseBody.string())
-            val elementsByClass = parseBodyFragment.body().getElementsByClass("panel panel-scrollable")
-            println(elementsByClass.html().replace("<br>", ""))
+            val elementsByClass = parseBodyFragment.body().getElementsByClass("content")
+            for (node in elementsByClass.textNodes()) {
+                println(node.text().replace("\n", ""))
+            }
         } else {
             println("Error uploading OPML")
         }
@@ -68,7 +70,7 @@ class TTRSSService(private val url: String,
             .post(formBody)
             .build()
 
-        client.newCall(request).execute()
+        val body = client.newCall(request).execute()
 
         val cookies = cookieJar.loadForRequest(url.toHttpUrl())
         if (cookies.isEmpty()) {
