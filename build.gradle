@@ -76,6 +76,8 @@ dependencies {
 
     implementation 'com.uchuhimo:konf:0.23.0'
 
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
+
 
     testImplementation 'junit:junit:4.13.1'
 }

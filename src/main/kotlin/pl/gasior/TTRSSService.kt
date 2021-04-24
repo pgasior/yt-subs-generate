@@ -1,9 +1,12 @@
 package pl.gasior
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.apache.http.entity.ContentType.APPLICATION_JSON
 import org.apache.http.entity.ContentType.APPLICATION_OCTET_STREAM
 import org.jsoup.Jsoup
 import java.net.CookieManager
@@ -12,10 +15,14 @@ class TTRSSService(private val url: String,
                    private val username: String,
                    private val password: String) {
 
-    private val cookieJar = JavaNetCookieJar(CookieManager())
     private val client = OkHttpClient.Builder()
-        .cookieJar(cookieJar)
         .build()
+
+    private val requestFactory = TTRSSRequestFactory()
+
+    private val objectMapper = jacksonObjectMapper()
+
+    private var apiKey: String = ""
 
     fun postOpml(opml: String) {
         if (login()) {
@@ -27,29 +34,18 @@ class TTRSSService(private val url: String,
     }
 
     private fun uploadOpml(opml: String) {
-        val body = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("op", "opml")
-            .addFormDataPart("method", "import")
-            .addFormDataPart(
-                "opml_file",
-                "subscriptions",
-                opml.toRequestBody(APPLICATION_OCTET_STREAM.mimeType.toMediaType())
-            )
-            .build()
-
         val request = Request.Builder()
-            .url(url.toHttpUrl().newBuilder().addPathSegments("backend.php").build())
-            .post(body)
+            .url(url.toHttpUrl().newBuilder().addPathSegments("api/")
+                .build())
+            .post(requestFactory.getImportOpmlRequest(apiKey, opml).toRequestBody(APPLICATION_JSON.mimeType.toMediaType()))
             .build()
 
         val responseBody = client.newCall(request).execute().body
 
         if (responseBody != null) {
-            val parseBodyFragment = Jsoup.parse(responseBody.string())
-            val elementsByClass = parseBodyFragment.body().getElementsByClass("content")
-            for (node in elementsByClass.textNodes()) {
-                println(node.text().replace("\n", ""))
+            val apiResponse = objectMapper.readValue(responseBody.string(), ResponseWrapper::class.java)
+            for (node in apiResponse.content["message"]!!) {
+                println(node.asText())
             }
         } else {
             println("Error uploading OPML")
@@ -57,26 +53,33 @@ class TTRSSService(private val url: String,
     }
 
     private fun login(): Boolean {
-        val formBody = FormBody.Builder()
-            .add("op", "login")
-            .add("login", username)
-            .add("password", password)
-            .add("profile", "0")
-            .build()
         val request = Request.Builder()
             .url(url.toHttpUrl().newBuilder()
-                .addPathSegments("public.php")
-                .addQueryParameter("return", url).build())
-            .post(formBody)
+                .addPathSegments("api/")
+                .build())
+            .post(requestFactory.getLoginRequest(username, password).toRequestBody(APPLICATION_JSON.mimeType.toMediaType()))
             .build()
 
-        val body = client.newCall(request).execute()
+        val response = client.newCall(request).execute()
 
-        val cookies = cookieJar.loadForRequest(url.toHttpUrl())
-        if (cookies.isEmpty()) {
+        if (response.body == null) {
             return false
         }
 
-        return cookies.find { it.name == "ttrss_sid" } != null
+        val apiResponse = objectMapper.readValue(response.body!!.string(), ResponseWrapper::class.java)
+
+        if (apiResponse.status != 0) {
+            return false
+        }
+
+        apiKey = apiResponse.content["session_id"]!!.asText()
+
+        return true
     }
+
+    data class ResponseWrapper(
+        val seq: Int,
+        val status: Int,
+        val content: Map<String, JsonNode>
+    )
 }
