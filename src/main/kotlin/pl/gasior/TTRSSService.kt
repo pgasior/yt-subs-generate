@@ -10,12 +10,15 @@ import org.apache.http.entity.ContentType.APPLICATION_JSON
 import org.apache.http.entity.ContentType.APPLICATION_OCTET_STREAM
 import org.jsoup.Jsoup
 import java.net.CookieManager
+import java.time.Duration
 
 class TTRSSService(private val url: String,
                    private val username: String,
                    private val password: String) {
 
     private val client = OkHttpClient.Builder()
+        .readTimeout(Duration.ofSeconds(30))
+        .callTimeout(Duration.ofSeconds(30))
         .build()
 
     private val requestFactory = TTRSSRequestFactory()
