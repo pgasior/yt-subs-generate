@@ -9,7 +9,7 @@ import com.rometools.rome.io.WireFeedOutput
 import java.net.URL
 import java.util.*
 
-class OpmlService(private val categoryName: String) {
+class RomeOpmlService(private val categoryName: String) {
     fun generateOpml(subs: List<YoutubeSub>): String {
         val opml = Opml()
         val baseOutline = Outline().apply {

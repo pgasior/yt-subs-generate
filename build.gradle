@@ -21,14 +21,14 @@ jar {
     }
 }
 
-shadowJar{
-    minimize {
-        exclude(dependency("org.jetbrains.kotlin:.*:.*"))
-        exclude(dependency("com.rometools:.*:.*"))
-        exclude(dependency("org.slf4j:.*:.*"))
-        exclude(dependency("ch.qos.logback:.*:.*"))
-    }
-}
+//shadowJar{
+//    minimize {
+//        exclude(dependency("org.jetbrains.kotlin:.*:.*"))
+//        exclude(dependency("com.rometools:.*:.*"))
+//        exclude(dependency("org.slf4j:.*:.*"))
+//        exclude(dependency("ch.qos.logback:.*:.*"))
+//    }
+//}
 
 launch4j {
     mainClassName = 'pl.gasior.Main'
@@ -85,7 +85,11 @@ dependencies {
 
     implementation 'com.uchuhimo:konf:1.1.2'
 
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.3"
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3'
+    implementation 'com.fasterxml.woodstox:woodstox-core:6.2.5'
+
 
     testImplementation 'junit:junit:4.13.2'
 }
